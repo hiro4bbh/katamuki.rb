@@ -383,7 +383,7 @@ def run_integrity_check
       row1 = row1[:*]
       row2 = df2.row(rowid)[:*]
       row1.each.with_index do |cell1, j|
-        raise "df1.row(#{rowid})[:*] = #{row1} but df2.row(#{rowid})[:*] = #{row2}" unless cell1.round(10) == row2[j].round(10)
+        raise "df1.row(#{rowid})[:*] = #{row1} but df2.row(#{rowid})[:*] = #{row2}" unless cell1.round(5) == row2[j].round(5)
       end
     end
   end
