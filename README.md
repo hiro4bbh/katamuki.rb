@@ -1,6 +1,8 @@
 # katamuki.rb - a simple Gradient Boosting library written in Ruby
 ![katamuki.rb logo](https://rawgit.com/hiro4bbh/katamuki.rb/master/icon_title.svg)
 
+[![Build Status](https://travis-ci.org/hiro4bbh/katamuki.rb.svg?branch=master)](https://travis-ci.org/hiro4bbh/katamuki.rb)
+
 Copyright 2017- Tatsuhiro Aoshima (hiro4bbh@gmail.com).
 
 ## What is katamuki.rb?
