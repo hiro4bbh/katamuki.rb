@@ -451,7 +451,7 @@ def run_integrity_check
     run_Jgram($options[:J], $options[:Tmax])
     assert_equal_dataframes(DataFrame.from_csv(File.read(answer_filename_prefix+'rule-gini-2.csv')), get_stages_data)
   end
-  report_processing_time('testing case `--model=logistic --shrinkage=0.0625 --clustering=hierarchical --clustering-order=0 -J3 --Tmax=8`', $stdout_logger, at_start: true) do
+  report_processing_time('testing case `--model=logistic --shrinkage=0.0625 --clustering=hierarchical --clustering-order=0 -J3 --Tmax=4`', $stdout_logger, at_start: true) do
     $logger = MemoryLogger.new
     $options = {:shell => $options[:shell]}
     $options[:model] = 'logistic'
@@ -459,7 +459,7 @@ def run_integrity_check
     $options[:clustering] = :hierarchical
     $options[:clustering_order] = 0
     $options[:J] = 3
-    $options[:Tmax] = 8
+    $options[:Tmax] = 4
     set_default_options
     run_Jgram($options[:J], $options[:Tmax])
     assert_equal_dataframes(DataFrame.from_csv(File.read(answer_filename_prefix+'logistic.csv')), get_stages_data, [5])
