@@ -42,17 +42,21 @@ class StandardLogger < MemoryLogger
   alias to_s inspect
 
   def error(tag, text)
+    super
     STDERR.puts "\033[31m#{tag}: #{text}\033[0m"
   end
   def info(tag, text)
     return if @forbid_tag_patterns.find do |pattern, _| pattern.match(tag) end
+    super
     STDERR.puts "\033[36m#{tag}: #{text}\033[0m"
   end
   def log(tag, text)
     return if @forbid_tag_patterns.find do |pattern, _| pattern.match(tag) end
+    super
     STDERR.puts "#{tag}: #{text}"
   end
   def warn(tag, text)
+    super
     STDERR.puts "\033[33m#{tag}: #{text}\033[0m"
   end
 

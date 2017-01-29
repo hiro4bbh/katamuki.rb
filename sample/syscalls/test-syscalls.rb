@@ -375,7 +375,7 @@ def set_default_options
 end
 
 def run_integrity_check
-  def assert_equal_dataframes(df1, df2)
+  def assert_equal_dataframes(df1, df2, looses=nil)
     raise "df1.nrows = #{df1.nrows} but df2.nrows = #{df2.nrows}" unless df1.nrows == df2.nrows
     raise "df1.ncols = #{df1.ncols} but df2.ncols = #{df2.ncols}" unless df1.ncols == df2.ncols
     df1.each do |row1|
@@ -383,7 +383,14 @@ def run_integrity_check
       row1 = row1[:*]
       row2 = df2.row(rowid)[:*]
       row1.each.with_index do |cell1, j|
-        raise "df1.row(#{rowid})[:*] = #{row1} but df2.row(#{rowid})[:*] = #{row2}" unless cell1.round(5) == row2[j].round(5)
+        unless cell1.round(10) == row2[j].round(10) then
+          msg = "df1.row(#{rowid})[:*] = #{row1} but df2.row(#{rowid})[:*] = #{row2}"
+          if looses and looses.include?(j) then
+            $stdout_logger.warn(:run_integrity_check, "hit loose check: #{msg}")
+          else
+            raise msg
+          end
+        end
       end
     end
   end
@@ -455,7 +462,7 @@ def run_integrity_check
     $options[:Tmax] = 8
     set_default_options
     run_Jgram($options[:J], $options[:Tmax])
-    assert_equal_dataframes(DataFrame.from_csv(File.read(answer_filename_prefix+'logistic.csv')), get_stages_data)
+    assert_equal_dataframes(DataFrame.from_csv(File.read(answer_filename_prefix+'logistic.csv')), get_stages_data, [5])
   end
   report_processing_time('testing case `--model=logistic --shrinkage=0.0625 --clustering=hierarchical --clustering-order=-1 -J12 --Tmax=4`', $stdout_logger, at_start: true) do
     $logger = MemoryLogger.new
@@ -468,7 +475,7 @@ def run_integrity_check
     $options[:Tmax] = 4
     set_default_options
     run_Jgram($options[:J], $options[:Tmax])
-    assert_equal_dataframes(DataFrame.from_csv(File.read(answer_filename_prefix+'hierarchical-logistic-1.csv')), get_stages_data)
+    assert_equal_dataframes(DataFrame.from_csv(File.read(answer_filename_prefix+'hierarchical-logistic-1.csv')), get_stages_data, [5])
   end
 end
 
