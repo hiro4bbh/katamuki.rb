@@ -1,0 +1,3 @@
+[submodule "lib/hako.rb"]
+	path = lib/hako.rb
+	url = https://github.com/hiro4bbh/hako.rb
