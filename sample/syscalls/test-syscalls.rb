@@ -416,14 +416,14 @@ def run_integrity_check
     run_Jgram($options[:J], $options[:Tmax])
     assert_equal_dataframes(DataFrame.from_csv(File.read(answer_filename_prefix+'rule-entropy-1.csv')), get_stages_data)
   end
-  report_processing_time('testing case `--model=rule --impurity=entropy --max-depth=2 -J4 --Tmax=8`', $stdout_logger, at_start: true) do
+  report_processing_time('testing case `--model=rule --impurity=entropy --max-depth=2 -J4 --Tmax=4`', $stdout_logger, at_start: true) do
     $logger = MemoryLogger.new
     $options = {:shell => $options[:shell]}
     $options[:model] = 'rule'
     $options[:impurity] = :entropy
     $options[:max_depth] = 2
     $options[:J] = 4
-    $options[:Tmax] = 8
+    $options[:Tmax] = 4
     set_default_options
     run_Jgram($options[:J], $options[:Tmax])
     assert_equal_dataframes(DataFrame.from_csv(File.read(answer_filename_prefix+'rule-entropy-2.csv')), get_stages_data)
@@ -439,14 +439,14 @@ def run_integrity_check
     run_Jgram($options[:J], $options[:Tmax])
     assert_equal_dataframes(DataFrame.from_csv(File.read(answer_filename_prefix+'rule-gini-1.csv')), get_stages_data)
   end
-  report_processing_time('testing case `--model=rule --impurity=gini --max-depth=2 -J4 --Tmax=8`', $stdout_logger, at_start: true) do
+  report_processing_time('testing case `--model=rule --impurity=gini --max-depth=2 -J4 --Tmax=4`', $stdout_logger, at_start: true) do
     $logger = MemoryLogger.new
     $options = {:shell => $options[:shell]}
     $options[:model] = 'rule'
     $options[:impurity] = :gini
     $options[:max_depth] = 2
     $options[:J] = 4
-    $options[:Tmax] = 8
+    $options[:Tmax] = 4
     set_default_options
     run_Jgram($options[:J], $options[:Tmax])
     assert_equal_dataframes(DataFrame.from_csv(File.read(answer_filename_prefix+'rule-gini-2.csv')), get_stages_data)

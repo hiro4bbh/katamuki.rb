@@ -162,7 +162,7 @@ module Clustering
     zeros = []
     cDsums.length.times do |i| zeros << i if cDsums[i] == 0 end
     pi = (0..(cD.ncols - 1)).to_a.sort_by! do |i| [-cDsums[i], i] end[0..-(zeros.length+1)]
-    cD = cD.collect_columns(pi)
+    cD = cD.project(pi)
     # Calculate cosine-similarity matrix
     wcD = cD.mul_rows(wD)
     _SD = wcD.t * wcD
