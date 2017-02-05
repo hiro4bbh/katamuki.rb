@@ -19,13 +19,9 @@ class LogisticLearner
     internals = get_internal_representation
     @x0_useds, @x0_useds_map = internals[:x0_useds], internals[:x0_useds_map]
     @cD, @wD = internals[:cD], internals[:wD]
-    @Y = {}
-    @P = {}
-    @x0_useds.each.with_index do |x0, i|
-      @Y[x0] = Vector.new(db.size)
-      @P[x0] = Vector.new(db.size).fill(1.0/@x0_useds.size)
-    end
-    @db.each.with_index do |(row, weight), i| @Y[db.decode(row, 0)][i] = 1.0 end
+    @Y = Matrix.new(db.size, @x0_useds.size)
+    @P = Matrix.new(db.size, @x0_useds.size).fill(1.0/@x0_useds.size)
+    @db.each.with_index do |(row, _), i| @Y[i,@x0_useds_map[db.decode(row, 0)]] = 1.0 end
     @clustering = Clustering.method(@clustering_method).call(@cD, @wD, db.alphamap, nextras: 1)
   end
   def inspect
@@ -58,22 +54,22 @@ class LogisticLearner
     cD = @clustering.transform_count_matrix(@cD, order, nextras: 1)
     classifier = LogisticClassifier.new(self)
     beta_mean = Vector.new(cD.ncols)
-    @x0_useds.each do |x0|
-      begin
-        classifier.betas_set[x0] = {}
-        y, p = @Y[x0], @P[x0]
-        w = (1.0 - p).hadamard!(p)
-        z = (y - p).hadamard!(w.power_elements(-1.0, 0.0))
-        beta = solve_weighted_least_squares(z, cD, w.hadamard!(@wD))
-        beta_mean.add!(beta)
-        classifier.betas_set[x0][order] = beta
-      rescue LAPACK::Info
-        $logger&.error(:logistic_learner_solve_weighted_least_squares, "#{t}: #{db.alphamap[x0]} => #{$!}")
-        classifier.betas_set[x0][order] = Vector.new(cD.ncols)
-      end
+    _W = (1.0 - @P).hadamard!(@P)
+    _Z = (@Y - @P).hadamard!(_W.power_elements(-1.0, 0.0))
+    _B = begin
+      solve_multiple_weighted_least_squares(_Z, cD, _W.mul_rows!(@wD))
+    rescue LAPACK::Info
+      $logger&.error(:logistic_learner_solve_multiple_weighted_least_squares, "#{t} => #{$!}")
+      Matrix.new(cD.ncols, @Y.ncols)
     end
-    beta_mean.hadamard!(1.0/@x0_useds.length)
-    @x0_useds.each do |x0| classifier.betas_set[x0][order].sub!(beta_mean).hadamard!(shrinkage) end
+    # Mathematically same but sometimes optimized-numerically different:
+    #   beta_mean = _B.rowsums.hadamard!(1.0/_B.ncols)
+    beta_mean = Vector.new(_B.nrows)
+    _B.each do |beta| beta_mean.add!(beta) end
+    beta_mean.hadamard!(1.0/_B.ncols)
+    _B.each.with_index do |beta, i|
+      (classifier.betas_set[@x0_useds[i]] = {})[order] = beta.sub!(beta_mean).hadamard!(shrinkage)
+    end
     @classifier.merge!(classifier)
     total_nnegatives, total_npositives = 0, 0
     scores_set = @classifier.calculate_scores_set_(@cD, @x0_useds)
@@ -85,8 +81,8 @@ class LogisticLearner
       else
         total_nnegatives += weight
       end
-      @x0_useds.each.with_index do |x0, k|
-        @P[x0][i] = if _P[i,k]*(1.0 - _P[i,k])*weight >= @min_weight then _P[i,k] elsif _P[i,k] >= 0.5 then 1.0 else 0.0 end
+      @x0_useds.size.times do |k|
+        @P[i,k] = if _P[i,k]*(1.0 - _P[i,k])*weight >= @min_weight then _P[i,k] elsif _P[i,k] >= 0.5 then 1.0 else 0.0 end
       end
     end
     $logger&.set_stage_data({
