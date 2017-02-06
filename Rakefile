@@ -7,4 +7,7 @@ Rake::TestTask.new do |t|
   t.verbose = true
 end
 
-task :default => [:test]
+task :default => [:build, :test]
+task :build do |t|
+  sh 'rake -f lib/hako.rb/Rakefile build'
+end

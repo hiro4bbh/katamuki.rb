@@ -82,10 +82,15 @@ class LogisticLearner
         total_nnegatives += weight
       end
     end
-    db.each.with_index do |(row, weight), i|
-      @x0_useds.size.times do |k|
-        @P[i,k] = if _P[i,k]*(1.0 - _P[i,k])*weight >= @min_weight then _P[i,k] elsif _P[i,k] >= 0.5 then 1.0 else 0.0 end
+    _W = (1.0 - _P).hadamard!(_P).mul_rows!(@wD)
+    i = 0
+    while i < _P.nrows do
+      k = 0
+      while k < _P.ncols do
+        @P[i,k] = if _W[i,k] >= @min_weight then _P[i,k] elsif _P[i,k] >= 0.5 then 1.0 else 0.0 end
+        k += 1
       end
+      i += 1
     end
     $logger&.set_stage_data({
       :train_total_nnegatives => total_nnegatives, :train_total_npositives => total_npositives,
