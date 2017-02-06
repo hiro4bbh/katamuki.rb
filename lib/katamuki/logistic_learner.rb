@@ -81,6 +81,8 @@ class LogisticLearner
       else
         total_nnegatives += weight
       end
+    end
+    db.each.with_index do |(row, weight), i|
       @x0_useds.size.times do |k|
         @P[i,k] = if _P[i,k]*(1.0 - _P[i,k])*weight >= @min_weight then _P[i,k] elsif _P[i,k] >= 0.5 then 1.0 else 0.0 end
       end
