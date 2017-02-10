@@ -82,7 +82,7 @@ class LogisticLearner
         total_nnegatives += weight
       end
     end
-    _FP = sign(_P - 0.5, 1.0, 0.0, 0.0)
+    _FP = sign(_P - 0.5, 1.0, 1.0, 0.0)
     @P = sign((1.0 - _P).hadamard!(_P).mul_rows!(@wD) - @min_weight, _P, _FP, _FP)
     $logger&.set_stage_data({
       :train_total_nnegatives => total_nnegatives, :train_total_npositives => total_npositives,

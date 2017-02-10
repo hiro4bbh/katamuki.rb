@@ -1,3 +1,5 @@
+require 'benchmark'
+
 class MemoryLogger
   attr_reader :stages, :loglines
   def initialize
@@ -75,9 +77,9 @@ class StandardLogger < MemoryLogger
 end
 
 def report_processing_time(msg, logger=$logger, at_start: false, &callback)
-  start = Time.now
   logger&.info(:report_processing_time, "#{msg}: starting ...") if at_start
-  value = callback.call
-  logger&.info(:report_processing_time, "#{msg}: finished in #{Time.now - start}s")
+  value = nil
+  tm = Benchmark.measure do value = callback.call end
+  logger&.info(:report_processing_time, "#{msg}: finished in user #{'%.5f' % [tm.utime + tm.cutime]}s, system #{'%.5f' % [tm.stime + tm.cstime]}s and real #{'%.5f' % [tm.real]}s")
   value
 end

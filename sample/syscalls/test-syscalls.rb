@@ -345,11 +345,9 @@ def write_to_file(title, filename, data)
   File.write(path, data)
 end
 def save
-  path = File.join(
-    $output_path,
-    "#{$options[:experiment_name]}-Jmin#{$options[:Jmin]}-#{
+  path = "#{$options[:experiment_name]}-Jmin#{$options[:Jmin]}-#{
       if $options[:J] then "J#{$options[:J]}" else "Jmax#{$options[:Jmax]}" end
-    }-Tmax#{$options[:Tmax]}-#{$models[$options[:J] || $options[:Jmax]].first.parameter_string}.csv")
+    }-Tmax#{$options[:Tmax]}-#{$models[$options[:J] || $options[:Jmax]].first.parameter_string}.csv"
   write_to_file('training and testing results', path, get_stages_data.to_csv)
 end
 
