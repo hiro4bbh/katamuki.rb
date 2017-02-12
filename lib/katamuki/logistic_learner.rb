@@ -21,7 +21,7 @@ class LogisticLearner
     @cD, @wD = internals[:cD], internals[:wD]
     @Y = Matrix.new(db.size, @x0_useds.size)
     @P = Matrix.new(db.size, @x0_useds.size).fill(1.0/@x0_useds.size)
-    @db.each.with_index do |(row, _), i| @Y[i,@x0_useds_map[db.decode(row, 0)]] = 1.0 end
+    db.each.with_index do |(row, _), i| @Y[i,@x0_useds_map[db.decode(row, 0)]] = 1.0 end
     @clustering = Clustering.method(@clustering_method).call(@cD, @wD, db.alphamap, nextras: 1)
   end
   def inspect

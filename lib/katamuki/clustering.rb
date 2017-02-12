@@ -30,24 +30,26 @@ module Clustering
   class HierarchicalMap
     attr_reader :alphamap
     def initialize(_D, alphamap, zeros, pi)
+      raise '_D must be square Matrix' unless _D.is_a? Matrix and _D.nrows == _D.ncols
       @D = _D
       @alphamap = alphamap
       @zeros = zeros
       @pi = pi
       # Do hierarchical clustering
       _Dt = @D.copy  # D^{(0)} := D
-      clusters = Hash[*_D.ncols.times.map do |j| [j, [pi[j]]] end.flatten(1)]
+      n = _Dt.ncols
+      i = 0
+      while i < n do
+        _Dt[i,i] = 2.0
+        i += 1
+      end
+      clusters = Hash[*_Dt.ncols.times.map do |j| [j, [pi[j]]] end.flatten(1)]
       @joins = []
       uniques = {}
       until clusters.size == 1 do
         # Find the most nearest two clusters each other
-        _Ci, _Ei, min_dist = -1, -1, 2.0
-        _Dt.ncols.times do |_Ai|
-          (_Ai + 1).upto(_Dt.ncols - 1) do |_Bi|
-            next unless clusters.include?(_Ai) and clusters.include?(_Bi)
-            _Ci, _Ei, min_dist = _Ai, _Bi, _Dt[_Ai,_Bi] if _Dt[_Ai,_Bi] < min_dist
-          end
-        end
+        _Ei, _Ci = _Dt.imin
+        min_dist = _Dt[_Ci,_Ei]
         # Join those two into one
         @joins << join = {:C1 => clusters[_Ci], :C2 => clusters[_Ei], :dist => min_dist}
         if min_dist >= 0.99 and (clusters[_Ci].length == 1 or clusters[_Ei].length == 1) then
@@ -60,12 +62,18 @@ module Clustering
         clusters[_Ci] += clusters[_Ei]
         # Update distance matrix D^{(t+1)} s.t.
         #   D^{(t+1)}(A, B) = \min_{a \in A, b \in B} D^{(0)}(\{a\}, \{b\}),
-        #     A, B: disjoint clusters at t + 1
-        _Dt.nrows.times do |_Ai|
-          next unless clusters.include?(_Ai)
-          _Dt[_Ci,_Ai] = _Dt[_Ei,_Ai] = _Dt[_Ai,_Ci] = _Dt[_Ai,_Ei] = [_Dt[_Ai,_Ci], _Dt[_Ai,_Ei]].min
-        end
+        #     A, B: disjoint clusters at t
         clusters.delete(_Ei)
+        _Ai = 0
+        while _Ai < n do
+          if clusters.include?(_Ai) then
+            _Dt[_Ci,_Ai] = _Dt[_Ei,_Ai] = _Dt[_Ai,_Ci] = _Dt[_Ai,_Ei] = [_Dt[_Ai,_Ci], _Dt[_Ai,_Ei]].min
+          else
+            _Dt[_Ci,_Ai] = _Dt[_Ei,_Ai] = _Dt[_Ai,_Ci] = _Dt[_Ai,_Ei] = 2.0
+          end
+          _Ai += 1
+        end
+        _Dt[_Ci,_Ci] = 2.0
       end
       @map = {}
       @joins.each do |join|
