@@ -32,7 +32,7 @@ class Alphamap16
     alphamap
   end
   def inspect(max=5)
-    "Alphamap<path=#{path}, inverse=[#{@inverse[0..(max-1)].map do |name| name.inspect end.join(',')}#{if @inverse.length > max then ",... and other #{@inverse.length - max} syscall(s)" end}]>"
+    "Alphamap<path=#{path}, inverse=[#{@inverse[0..(max-1)].map do |name| name.inspect end.join(',')}#{if @inverse.length > max then ",... and other #{@inverse.length - max} alphabet(s)" end}]>"
   end
   alias to_s inspect
   def clone

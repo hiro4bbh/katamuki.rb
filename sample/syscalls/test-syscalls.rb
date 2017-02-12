@@ -247,7 +247,7 @@ def run_onestage(_J, t)
   tprs, fprs = [], []
   models.each.with_index do |model, m|
     $logger&.set_stage_id([_J, t, m])
-    report_processing_time("learn model<J=#{_J},t=#{t},m=#{m}>: #{model.parameter_string}>") do
+    report_processing_time("learn model<J=#{_J},t=#{t},m=#{m}: #{model.parameter_string}>") do
       model.learn(t)
     end
     classifier = model.classifier
@@ -517,7 +517,10 @@ begin
   end
 rescue Exception
   $stdout_logger&.error(:exception, "#{$!.inspect}\n  #{$@.join("\n  ")}")
-  exit 1 unless $options[:shell]
+  unless $options[:shell] then
+    save
+    exit 1
+  end
 ensure
   start_hako_shell if $options[:shell]
 end
