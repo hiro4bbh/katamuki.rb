@@ -381,7 +381,12 @@ def run_integrity_check
       row1 = row1[:*]
       row2 = df2.row(rowid)[:*]
       row1.each.with_index do |cell1, j|
-        unless cell1.round(10) == row2[j].round(10) then
+        test = if cell1.is_a? Numeric then
+          cell1.round(10) == row2[j].round(10)
+        else
+          cell1.to_s == row2[j].to_s
+        end
+        unless test then
           msg = "df1.row(#{rowid})[:*] = #{row1} but df2.row(#{rowid})[:*] = #{row2}"
           if looses and looses.include?(j) then
             $stdout_logger.warn(:run_integrity_check, "hit loose check: #{msg}")
@@ -461,6 +466,23 @@ def run_integrity_check
     set_default_options
     run_Jgram($options[:J], $options[:Tmax])
     assert_equal_dataframes(DataFrame.from_csv(File.read(answer_filename_prefix+'logistic.csv')), get_stages_data, [5])
+  end
+  report_processing_time('testing dendrogram in `--model=logistic --shrinkage=0.0625 --clustering=hierarchical --clustering-order=-1 -J14 --Tmax=0`', $stdout_logger, at_start: true) do
+    $logger = MemoryLogger.new
+    $options = {:shell => $options[:shell]}
+    $options[:model] = 'logistic'
+    $options[:shrinkage] = 0.0625
+    $options[:clustering] = :hierarchical
+    $options[:clustering_order] = -1
+    $options[:J] = 14
+    $options[:Tmax] = 0
+    set_default_options
+    run_Jgram($options[:J], $options[:Tmax])
+    df = DataFrame.from_a([], colnames: [:m, :C1, :C2, :dist, :unique])
+    $models[$options[:J]].each.with_index do |model, m|
+      model.clustering.dendrogram_compact.each do |row| df << [m] + row[:*] end
+    end
+    assert_equal_dataframes(DataFrame.from_csv(File.read(answer_filename_prefix+'hierarchical-logistic-dendrogram.csv')), df, [3])
   end
   report_processing_time('testing case `--model=logistic --shrinkage=0.0625 --clustering=hierarchical --clustering-order=-1 -J12 --Tmax=4`', $stdout_logger, at_start: true) do
     $logger = MemoryLogger.new

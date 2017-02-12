@@ -103,7 +103,6 @@ module Clustering
     end
 
     def dendrogram
-      return @dendrogram if @dendrogram
       dg = {}
       @joins.each do |join|
         _C1 = dg[join[:C1][0]] || {:is_leaf => true, :nmembers => 1, :name => alphamap[join[:C1][0]], :dist => 0}
@@ -113,7 +112,14 @@ module Clustering
         dg[join[:C1][0]] = branch
       end
       raise "joins information must form a dendrogram" unless dg.keys.length == 1
-      @dendrogram = dg[dg.keys[0]]
+      dg[dg.keys[0]]
+    end
+    def dendrogram_compact
+      df = DataFrame.from_a([], colnames: [:C1, :C2, :dist, :unique])
+      @joins.each do |join|
+        df << [join[:C1][0], join[:C2][0], join[:dist], join[:unique]]
+      end
+      df
     end
     def dissimilarity_data_frame
       @D.to_data_frame(colnames: @pi.collect do |i| alphamap[i] end)
