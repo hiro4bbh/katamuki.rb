@@ -15,8 +15,23 @@ running `sample/syscalls`.
 ## How to use katamuki.rb?
 Currently, katamuki.rb is extremely unstable, so there is not gem for
 katamuki.rb or installation scripts for deployment.
-Furthermore, katamuki.rb is only tested on my macOS Sierra.
 
-See https://github.com/hiro4bbh/hako.rb README.md for installation.
+You can use katamuki.rb on macOS from GitHub, as the following:
+
+```bash
+# Get latest katamuki.rb from GitHub.
+git clone https://github.com/hiro4bbh/katamuki.rb
+cd katamuki.rb
+git submodule update --init
+# You can use OpenBLAS optimized for your machine.
+brew install homebrew/science/openblas --build-from-source
+# Use latest Ruby (currently tested on version 2.4.0p0).
+brew install ruby
+# Install FFI for OpenBLAS interface.
+gem install ffi
+# Happy hacking with katamuki.rb :)
+./bin/katamuki.rb
+```
 
 You can see yardoc at http://www.rubydoc.info/github/hiro4bbh/katamuki.rb .
+__WARNING: yardoc has many bug for katamuki.rb documentation, be careful!!__
