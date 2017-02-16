@@ -13,7 +13,7 @@ katamuki.rb only supports data in `JgramDatabase*`, which is required for
 running `sample/syscalls`.
 
 ## How to use katamuki.rb?
-Currently, katamuki.rb is extremely unstable, so there is not gem for
+Currently, katamuki.rb is extremely unstable, so there is no gem for
 katamuki.rb or installation scripts for deployment.
 
 You can use katamuki.rb on macOS from GitHub, as the following:
@@ -34,4 +34,4 @@ gem install ffi
 ```
 
 You can see yardoc at http://www.rubydoc.info/github/hiro4bbh/katamuki.rb .
-__WARNING: yardoc has many bug for katamuki.rb documentation, be careful!!__
+__WARNING: yardoc has many bugs for katamuki.rb documentation, be careful!!__
