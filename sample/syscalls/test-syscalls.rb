@@ -191,7 +191,7 @@ def load_normal_Jgram_database(_J, relpaths, alphamap=nil)
     file
   end
   return nil if files.length == 0
-  db = JgramDatabase16.new(_J, alphamap || Alphamap16::from_alphamaps(files.map do |file| file.alphamap end))
+  db = JgramDatabase16.new(_J, alphamap || Alphamap16::from_alphamaps(*(files.map do |file| file.alphamap end)))
   files.each do |file|
     file.each_Jgram(_J) do |x, weight|
       db.add_weight(db.encode(file.decode(x, to_sym: true).reverse), weight)

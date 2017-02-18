@@ -17,6 +17,6 @@ class TestSampleSyscalls < MiniTest::Test
       end
     end
     Kernel.system("unzip #{rootpath}/syscalls_data.zip -d #{rootpath}")
-    assert_equal true, Kernel.system("#{rootpath}/test-syscalls.rb --integrity-check")
+    assert_equal(true, Kernel.system("#{rootpath}/test-syscalls.rb --integrity-check"))
   end
 end

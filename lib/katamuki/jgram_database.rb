@@ -1,5 +1,4 @@
 require 'katamuki/alphamap'
-require 'katamuki/clustering'
 
 class JgramDatabase16
   class ColumnPair < Hash
@@ -25,6 +24,7 @@ class JgramDatabase16
   alias to_s inspect
   def copy
     other = clone
+    @alphamap = @alphamap.copy
     @rows = @rows.copy
     other
   end
@@ -32,9 +32,6 @@ class JgramDatabase16
     n = 0
     @rows.each do |row, weight| n += 1 if weight > 0 end
     n
-  end
-  def order_size(order)
-    if order == size then size else clustering_map.order_size(order) end
   end
   def weight
     w = 0

@@ -1,3 +1,5 @@
+require 'katamuki/clustering'
+
 class LogisticClassifier
   attr_reader :model
   attr_accessor :betas_set

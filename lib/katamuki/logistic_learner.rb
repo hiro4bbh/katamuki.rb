@@ -40,7 +40,7 @@ class LogisticLearner
       x0 = db.decode(row, 0)
       x0_useds[x0] = true
       cD[i,-1] = 1.0
-      1.upto(db.J - 1) do |j| cD[i,db.decode(row, j)] += 1.0 end
+      1.upto(db.J - 1) do |j| cD[i,db.decode(row, j)%db.alphamap.size] += 1.0 end
       wD[i] = weight
     end
     x0_useds = x0_useds.keys.sort!

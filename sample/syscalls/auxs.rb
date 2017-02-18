@@ -8,9 +8,6 @@ def get_abnormal_databases(_J)
   end
   df
 end
-def get_database_alphamap_inverse(db)
-  db.alphamap.instance_variable_get(:@inverse)
-end
 def get_database_traces(per_trace=false, path_pattern: /.*/)
   df = DataFrame.from_a([], colnames: ['path', 'ntraces', 'trace_length'])
   counts = {}
@@ -104,7 +101,7 @@ def fit_models(_J, ms=nil, with_train: true, with_test_normal: true, with_test_a
   ms = [ms] unless ms.is_a? Array
   classifiers = ms.collect do |m| models[m].classifier end
   db = models[0].db
-  alphamap_inverse = get_database_alphamap_inverse(db) + [:__UNKNOWN__]
+  alphamap_inverse = db.alphamap.to_a + [:__UNKNOWN__]
   counts = {}
   colnames = ms.collect do |m| "score#{m}" end
   colnames << 'train_weight' if with_train

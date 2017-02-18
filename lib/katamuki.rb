@@ -1,6 +1,5 @@
-$:.unshift(File.join(File.dirname(__FILE__), './hako.rb/lib'))
-
 $HAKO_SHELL_NAME = 'katamuki.rb'
+$:.unshift(File.join(File.dirname(__FILE__), './hako.rb/lib'))
 require 'hako.rb'
 
 require 'katamuki/logger'
