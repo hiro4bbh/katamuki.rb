@@ -179,7 +179,11 @@ module Clustering
     }" unless similarity.is_a? Symbol and Metrics::Pairwise::Similarities.respond_to? similarity
     alphamap ||= Alphamap16.new(_X.ncols.times.map do |j| :"x#{j}" end)
     _X, zeros, pi = Metrics::Pairwise::reorder_columns(_X)
-    _S = Metrics::Pairwise::Similarities.method(similarity).call(_X, weights: weights)
+    if weights then
+      raise 'weights must be Vector whose length is equal to number of rows of _X' unless weights.is_a? Vector and weights.length == _X.nrows
+      _X.mul_rows!(weights)
+    end
+    _S = Metrics::Pairwise::Similarities.method(similarity).call(_X)
     _D = Metrics::Pairwise::similarity_to_normalized_dissimilarity(_S)
     Clustering::HierarchicalMap.new(_D, alphamap, zeros, pi)
   end

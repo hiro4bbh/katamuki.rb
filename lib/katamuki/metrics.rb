@@ -39,18 +39,22 @@ module Metrics
     # Similarities is a module containing methods for the supported pairwise
     # similarities.
     module Similarities
-      # Return a cosine similarity matrix from the given matrix with the
-      # given weights.
+      # Return a Matrix containing cosine similarities of columns.
       #
       # @param _X Matrix.
-      # @param weights Vector containing row weights.
-      def Similarities::cosine(_X, weights: nil)
+      def Similarities::cosine(_X)
         raise '_X must be Matrix' unless _X.is_a? Matrix
-        if weights then
-          raise 'weights must be Vector whose length is equal to number of rows of _X' unless weights.is_a? Vector and weights.length == _X.nrows
-          _X = _X.mul_rows(weights)
-        end
         Metrics::Pairwise::normalize_similarity((_X.t*_X).power_elements!(2.0))
+      end
+      # Return a Matrix containing euclidean distances of columns.
+      #
+      # @param _X Matrix.
+      def Similarities::euclidean_distance(_X)
+        raise '_X must be Matrix' unless _X.is_a? Matrix
+        _XtX = _X.t*_X
+        d = _XtX.diag
+        ones = Vector.new(d.length).fill(1.0)
+        (d.rank1op(ones) + ones.rank1op(d) - 2.0*_XtX).power_elements(0.5)
       end
     end
   end
