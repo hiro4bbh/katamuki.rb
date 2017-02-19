@@ -1,3 +1,5 @@
+require 'katamuki/metrics'
+
 module Clustering
   class NoneMap
     attr_reader :alphamap
@@ -23,9 +25,6 @@ module Clustering
       c.copy
     end
   end
-  def Clustering::none(cD, wD, alphamap, nextras: 0)
-    Clustering::NoneMap.new(alphamap)
-  end
 
   class HierarchicalMap
     attr_reader :alphamap
@@ -35,7 +34,7 @@ module Clustering
       @alphamap = alphamap
       @zeros = zeros
       @pi = pi
-      # Do hierarchical clustering
+      # Do hierarchical clustering.
       _Dt = @D.copy  # D^{(0)} := D
       n = _Dt.ncols
       i = 0
@@ -47,10 +46,10 @@ module Clustering
       @joins = []
       uniques = {}
       until clusters.size == 1 do
-        # Find the most nearest two clusters each other
+        # Find the most nearest two clusters each other.
         _Ei, _Ci = _Dt.imin
         min_dist = _Dt[_Ci,_Ei]
-        # Join those two into one
+        # Join those two into one.
         @joins << join = {:C1 => clusters[_Ci], :C2 => clusters[_Ei], :dist => min_dist}
         if min_dist >= 0.99 and (clusters[_Ci].length == 1 or clusters[_Ei].length == 1) then
           uniques[clusters[_Ci][0]] = true if clusters[_Ci].length == 1
@@ -62,7 +61,7 @@ module Clustering
         clusters[_Ci] += clusters[_Ei]
         # Update distance matrix D^{(t+1)} s.t.
         #   D^{(t+1)}(A, B) = \min_{a \in A, b \in B} D^{(0)}(\{a\}, \{b\}),
-        #     A, B: disjoint clusters at t
+        #     A, B: disjoint clusters at t.
         clusters.delete(_Ei)
         _Ai = 0
         while _Ai < n do
@@ -169,20 +168,19 @@ module Clustering
       tc
     end
   end
-  def Clustering::hierarchical(cD, wD, alphamap, nextras: 0)
-    # Cut extra columns and reorder columns by total counts, then coalesce columns whose count is 0
-    cD = cD.resize(cD.nrows, cD.ncols - nextras) if nextras > 0
-    cDsums = cD.colsums
-    zeros = []
-    cDsums.length.times do |i| zeros << i if cDsums[i] == 0 end
-    pi = (0..(cD.ncols - 1)).to_a.sort_by! do |i| [-cDsums[i], i] end[0..-(zeros.length+1)]
-    cD = cD.project(pi)
-    # Calculate cosine-similarity matrix
-    wcD = cD.mul_rows(wD)
-    _SD = wcD.t * wcD
-    d = _SD.diag
-    _SD.hadamard!(_SD).hadamard!(d.rank1op(d).power_elements!(-1.0, 0.0))
-    _SD.nrows.times do |i| _SD[i,i] = 1.0 end
-    Clustering::HierarchicalMap.new(1.0 - _SD, alphamap, zeros, pi)
+
+  def Clustering::none(_X, weights: nil, alphamap: nil, similarity: nil)
+    Clustering::NoneMap.new(alphamap)
+  end
+
+  def Clustering::hierarchical(_X, weights: nil, alphamap: nil, similarity: nil)
+    raise "specify similarity of #{
+      (Metrics::Pairwise::Similarities.methods - Metrics::Pairwise::Similarities.class.methods).join(' or ')
+    }" unless similarity.is_a? Symbol and Metrics::Pairwise::Similarities.respond_to? similarity
+    alphamap ||= Alphamap16.new(_X.ncols.times.map do |j| :"x#{j}" end)
+    _X, zeros, pi = Metrics::Pairwise::reorder_columns(_X)
+    _S = Metrics::Pairwise::Similarities.method(similarity).call(_X, weights: weights)
+    _D = Metrics::Pairwise::similarity_to_normalized_dissimilarity(_S)
+    Clustering::HierarchicalMap.new(_D, alphamap, zeros, pi)
   end
 end

@@ -9,7 +9,7 @@ class LogisticLearner
     @clustering_method, @order = if clustering_method then
       raise "specify clustering_method of #{
         (Clustering.methods - Clustering.class.methods).join(' or ')
-      }" if !Clustering.respond_to? clustering_method
+      }" unless clustering_method.is_a? Symbol and Clustering.respond_to? clustering_method
       raise "specify order" unless order
       [clustering_method, order]
     else
@@ -22,7 +22,7 @@ class LogisticLearner
     @Y = Matrix.new(db.size, @x0_useds.size)
     @P = Matrix.new(db.size, @x0_useds.size).fill(1.0/@x0_useds.size)
     db.each.with_index do |(row, _), i| @Y[i,@x0_useds_map[db.decode(row, 0)]] = 1.0 end
-    @clustering = Clustering.method(@clustering_method).call(@cD, @wD, db.alphamap, nextras: 1)
+    @clustering = Clustering.method(@clustering_method).call(@cD.resize(@cD.nrows, @cD.ncols - 1), weights: @wD, alphamap: db.alphamap, similarity: :cosine)
   end
   def inspect
     "LogisticLearner<db=#{@db}, min_weight=#{@min_weight}, shrinkage=#{@shrinkage}, clustering=#{@clustering}, order=#{@order}>"
