@@ -56,12 +56,12 @@ class LogisticClassifier
     intercepts = {}
     slopes = {}
     internals = model.get_internal_representation
-    x0_useds, x0_useds_map = internals[:x0_useds], internals[:x0_useds_map]
+    x0_useds = internals[:x0_useds]
     cD = internals[:cD]
     _Z = calculate_scores_set_(cD, x0_useds)
     model.db.each.with_index do |(row, weight), i|
       x0 = model.db.decode(row, 0)
-      score = _Z[i,x0_useds_map[x0]]
+      score = _Z[i,x0_useds.invert[x0]]
       x0_useds.each do |k|
         intercepts[k] = (intercepts[k] || 0.0) + weight*score
         slopes[k] = (slopes[k] || 0.0) + weight*(get_coefficient(x0)[k] - (score - get_coefficient(x0)[-1])/(model.db.J - 1))
@@ -75,12 +75,12 @@ class LogisticClassifier
     scores = {}
     deltas = {}
     internals = model.get_internal_representation
-    x0_useds, x0_useds_map = internals[:x0_useds], internals[:x0_useds_map]
+    x0_useds = internals[:x0_useds]
     cD = internals[:cD]
     _Z = calculate_scores_set_(cD, x0_useds)
     model.db.each.with_index do |(row, weight), i|
       x0 = model.db.decode(row, 0)
-      score = _Z[i,x0_useds_map[x0]]
+      score = _Z[i,x0_useds.invert[x0]]
       x0_useds.each.with_index do |k, j|
         scores[k] = (scores[k] || 0.0) + weight*score
         deltas[k] = (deltas[k] || 0.0) + weight*(_Z[i,j] - score)
@@ -118,10 +118,11 @@ class LogisticClassifier
     end if @betas_set[x0]
     c
   end
-  def calculate_scores_set_(cD, x0)
-    _B = Matrix.new(model.db.alphamap.size + 1, x0.length)
-    x0.each.with_index do |x, j|
-      betas = get_coefficient(x)
+  def calculate_scores_set_(cD, x0s)
+    _B = Matrix.new(model.db.alphamap.size + 1, x0s.length)
+    x0s = x0s.keys if x0s.is_a? SortedSet
+    x0s.each.with_index do |x0, j|
+      betas = get_coefficient(x0)
       betas.length.times do |i| _B[i,j] = betas[i] end
     end
     cD*_B

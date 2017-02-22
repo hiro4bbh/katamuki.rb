@@ -17,11 +17,11 @@ class LogisticLearner
     end
     @classifier = LogisticClassifier.new(self)
     internals = get_internal_representation
-    @x0_useds, @x0_useds_map = internals[:x0_useds], internals[:x0_useds_map]
+    @x0_useds = internals[:x0_useds]
     @cD, @wD = internals[:cD], internals[:wD]
     @Y = Matrix.new(db.size, @x0_useds.size)
     @P = Matrix.new(db.size, @x0_useds.size).fill(1.0/@x0_useds.size)
-    db.each.with_index do |(row, _), i| @Y[i,@x0_useds_map[db.decode(row, 0)]] = 1.0 end
+    db.each.with_index do |(row, _), i| @Y[i,@x0_useds.invert[db.decode(row, 0)]] = 1.0 end
     @clustering = Clustering.method(@clustering_method).call(@cD.resize(@cD.nrows, @cD.ncols - 1), weights: @wD, alphamap: db.alphamap, similarity: :cosine)
   end
   def inspect
@@ -33,20 +33,16 @@ class LogisticLearner
   end
 
   def get_internal_representation
-    x0_useds = {}
+    x0_useds = SortedSet.new
     cD = Matrix.new(db.size, db.alphamap.size + 1)
     wD = Vector.new(db.size)
     db.each.with_index do |(row, weight), i|
-      x0 = db.decode(row, 0)
-      x0_useds[x0] = true
+      x0_useds << db.decode(row, 0)
       cD[i,-1] = 1.0
       1.upto(db.J - 1) do |j| cD[i,db.decode(row, j)%db.alphamap.size] += 1.0 end
       wD[i] = weight
     end
-    x0_useds = x0_useds.keys.sort!
-    x0_useds_map = {}
-    x0_useds.each.with_index do |x0, i| x0_useds_map[x0] = i end
-    {:x0_useds => x0_useds, :x0_useds_map => x0_useds_map, :cD => cD, :wD => wD}
+    {:x0_useds => x0_useds, :cD => cD, :wD => wD}
   end
 
   def learn(t)
@@ -68,14 +64,14 @@ class LogisticLearner
     _B.each do |beta| beta_mean.add!(beta) end
     beta_mean.hadamard!(1.0/_B.ncols)
     _B.each.with_index do |beta, i|
-      (classifier.betas_set[@x0_useds[i]] = {})[order] = beta.sub!(beta_mean).hadamard!(shrinkage)
+      (classifier.betas_set[@x0_useds.keys[i]] = {})[order] = beta.sub!(beta_mean).hadamard!(shrinkage)
     end
     @classifier.merge!(classifier)
     total_nnegatives, total_npositives = 0, 0
     scores_set = @classifier.calculate_scores_set_(@cD, @x0_useds)
     _P = scores_set.softmax_rows
     db.each.with_index do |(row, weight), i|
-      score = scores_set[i, @x0_useds_map[db.decode(row, 0)]]
+      score = scores_set[i, @x0_useds.invert[db.decode(row, 0)]]
       if score <= 0 then
         total_npositives += weight
       else
